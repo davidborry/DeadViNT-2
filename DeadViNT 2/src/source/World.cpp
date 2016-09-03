@@ -220,6 +220,7 @@ void World::testSolids(){
 	addObstacle(6, 7);
 
 	for (int i = 0; i < 8; i++)
+		if (i!=5)
 		addObstacle(i, 2);
 	/*for (int i = 1; i < 9; i++)
 		if (i != 5 && i != 4){
@@ -264,11 +265,26 @@ void World::addObstacle(int x, int y){
 
 void World::printGrid(){
 	mPathfindingGrid.print();
+
+	mPathfindingGrid.getNode(2, 0)->isSolid();
+
+	std::vector<PathFindingGrid::Position> path = mPathfindingGrid.getPath({ 0, 0 }, { 5, 5 });
+	printf("PATH : %i\n", path.size());
 	printf("\n");
+
+	sf::Texture& texture = mTextures.get(Resources::Textures::Particle);
+	sf::IntRect textureRect(0, 0, 25, 25);
+
+	for (int i = 0; i < path.size(); i++){
+		std::unique_ptr<SpriteNode> sprite(new SpriteNode(texture, textureRect));
+		sprite->setPosition(100 * path[i].x, 100 * path[i].y);
+		sprite->setSolid(false);
+		mSceneLayers[UpperAir]->attachChild(std::move(sprite));
+	}
 }
 
 void World::updatePlayerGridPosition(){
-	Position a = { mPlayerHuman->getWorldPosition().x / 100, mPlayerHuman->getWorldPosition().y / 100 };
+	PathFindingGrid::Position a = { mPlayerHuman->getWorldPosition().x / 100, mPlayerHuman->getWorldPosition().y / 100 };
 	if (a.x != mPlayerGridPosition.x || a.y != mPlayerGridPosition.y){
 		printf("%i,%i\n", a.x, a.y);
 		mPlayerGridPosition = a;

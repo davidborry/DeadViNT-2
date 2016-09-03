@@ -20,11 +20,7 @@
 #include "entities\Zombie.hpp"
 #include "util\PathFindingGrid.hpp"
 
-struct Position{
-	int x;
-	int y;
 
-};
 
 class World : private sf::NonCopyable{
 
@@ -92,7 +88,7 @@ private:
 	CollisionGrid mCollisionGrid;
 
 	PathFindingGrid mPathfindingGrid;
-	Position mPlayerGridPosition;
+	PathFindingGrid::Position mPlayerGridPosition;
 };
 
 

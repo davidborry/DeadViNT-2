@@ -18,7 +18,13 @@
 #include "util/CollisionGrid.hpp"
 #include "entities/Projectile.hpp"
 #include "entities\Zombie.hpp"
+#include "util\PathFindingGrid.hpp"
 
+struct Position{
+	int x;
+	int y;
+
+};
 
 class World : private sf::NonCopyable{
 
@@ -34,6 +40,10 @@ public:
 	CommandQueue& getCommandQueue();
 	bool gameStatus() const;
 
+	void addObstacle(int x, int y);
+
+	void printGrid();
+
 private:
 	void loadTextures();
 	void buildScene();
@@ -47,6 +57,8 @@ private:
 	void testSolids();
 	void testZombies();
 	void spawnZombie(float x, float y);
+
+	void updatePlayerGridPosition();
 
 private:
 	enum Layer{
@@ -73,12 +85,14 @@ private:
 	Human* mPlayerHuman;
 
 	CommandQueue mCommandQueue;
-	
 
 	bool gameOver;
 	
 	CollisionCell mCollisionCell;
 	CollisionGrid mCollisionGrid;
+
+	PathFindingGrid mPathfindingGrid;
+	Position mPlayerGridPosition;
 };
 
 

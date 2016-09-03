@@ -5,13 +5,14 @@ mTarget(outputTarget),
 mFonts(fonts),
 mSounds(sounds),
 mWorldView(outputTarget.getDefaultView()),
-mWorldBounds(0.f, 0.f, 1024, 720),
-mSpawnPosition(mWorldView.getSize().x/2.f, mWorldBounds.height - mWorldView.getSize().y /2.f),
+mWorldBounds(0.f, 0.f, 1000, 1000),
+mSpawnPosition(512.f, 360.f),
 mScrollSpeed(-50.f),
 mPlayerHuman(nullptr),
 gameOver(false),
 mCollisionCell(),
-mCollisionGrid(1024,720,100,100)
+mCollisionGrid(1000,1000,100,100),
+mPathfindingGrid(10,10)
 {
 	mSceneTexture.create(outputTarget.getSize().x, outputTarget.getSize().y);
 
@@ -19,10 +20,12 @@ mCollisionGrid(1024,720,100,100)
 	buildScene();
 
 	//testCollisions();
-	//testSolids();
-	testZombies();
+	testSolids();
+	//testZombies();
 	mWorldView.setCenter(mSpawnPosition);
 
+	mPlayerGridPosition.x = mPlayerHuman->getWorldPosition().x / 100;
+	mPlayerGridPosition.y = mPlayerHuman->getWorldPosition().y / 100;
 }
 
 void World::loadTextures(){
@@ -61,7 +64,7 @@ void World::buildScene(){
 	mSceneLayers[Background]->attachChild(std::move(backgroundSprite));
 
 	std::unique_ptr<Human> human(new Human(mTextures));
-	human->setPosition(mWorldBounds.width / 2.f, mWorldBounds.height / 2.f);
+	human->setPosition(mSpawnPosition);
 	mPlayerHuman = human.get();
 	mSceneLayers[UpperAir]->attachChild(std::move(human));
 
@@ -107,6 +110,9 @@ void World::update(sf::Time dt){
 	updateSounds();
 
 	handleCollisions();
+
+	updatePlayerGridPosition();
+	//mWorldView.setCenter(mPlayerHuman->getWorldPosition());
 }
 
 CommandQueue& World::getCommandQueue(){
@@ -136,6 +142,12 @@ void World::handleCollisions(){
 		else if (matchesCategories(pair, Category::PlayerHuman, Category::Solid))
 			mPlayerHuman->adjustPositionObstacle(pair.second);
 
+		else if (matchesCategories(pair, Category::Zombie, Category::Solid)){
+			auto zombie = static_cast<Zombie*>(pair.first);
+			zombie->adjustPositionObstacle(pair.second);
+		}
+		
+
 		else if (matchesCategories(pair, Category::Projectile, Category::Zombie)){
 			auto zombie = static_cast<Zombie*>(pair.second);
 			auto projectile = static_cast<Projectile*>(pair.first);
@@ -145,9 +157,16 @@ void World::handleCollisions(){
 		}
 
 		else if (matchesCategories(pair, Category::PlayerHuman, Category::Zombie)){
-			
 			auto zombie = static_cast<Zombie*>(pair.second);
-			mPlayerHuman->adjustPositionObstacle(zombie);
+			zombie->adjustPositionObstacle(mPlayerHuman);
+		}
+
+		else if (matchesCategories(pair, Category::Zombie, Category::Zombie)){
+			auto z1 = static_cast<Zombie*>(pair.first);
+			auto z2 = static_cast<Zombie*>(pair.second);
+
+			z1->adjustPositionObstacle(z2);
+
 		}
 	}
 
@@ -198,24 +217,11 @@ void World::drawGrid(int width, int height){
 }
 
 void World::testSolids(){
-	sf::Texture& texture = mTextures.get(Resources::Textures::Solid);
-	sf::IntRect textureRect(0, 0, 50, 50);
+	addObstacle(6, 7);
 
-	for (int i = 0; i < 10; i++){
-		std::unique_ptr<SpriteNode> sprite(new SpriteNode(texture, textureRect));
-		sprite->setPosition(200 + 50 * i, 100);
-		sprite->setSolid(true);
-		mSceneLayers[UpperAir]->attachChild(std::move(sprite));
-	}
-
-	for (int i = 0; i < 10; i++){
-		std::unique_ptr<SpriteNode> sprite(new SpriteNode(texture, textureRect));
-		sprite->setPosition(200 + 50*i, 500);
-		sprite->setSolid(true);
-		mSceneLayers[UpperAir]->attachChild(std::move(sprite));
-	}
-
-	for (int i = 1; i < 9; i++)
+	for (int i = 0; i < 8; i++)
+		addObstacle(i, 2);
+	/*for (int i = 1; i < 9; i++)
 		if (i != 5 && i != 4){
 		std::unique_ptr<SpriteNode> sprite(new SpriteNode(texture, textureRect));
 		sprite->setPosition(200, 100 + 50*i);
@@ -228,15 +234,43 @@ void World::testSolids(){
 		sprite->setPosition(700, 100 + 50 * i);
 		sprite->setSolid(true);
 		mSceneLayers[UpperAir]->attachChild(std::move(sprite));
-	}
+	}*/
 }
 
 void World::testZombies(){
-	spawnZombie(500, 400);
+	spawnZombie(500, 650);
+	spawnZombie(300, 200);
 }
 
 void World::spawnZombie(float x, float y){
 	std::unique_ptr<Zombie> zombie(new Zombie(mTextures));
 	zombie->setPosition(x,y);
+	zombie->setTarget(mPlayerHuman);
 	mSceneLayers[UpperAir]->attachChild(std::move(zombie));
+}
+
+void World::addObstacle(int x, int y){
+	sf::Texture& texture = mTextures.get(Resources::Textures::Solid);
+	sf::IntRect textureRect(0, 0, 100, 100);
+
+		std::unique_ptr<SpriteNode> sprite(new SpriteNode(texture, textureRect));
+		sprite->setPosition(100*x,100*y);
+		sprite->setSolid(true);
+		mSceneLayers[UpperAir]->attachChild(std::move(sprite));
+
+		mPathfindingGrid.setSolid(x, y, true);
+	
+}
+
+void World::printGrid(){
+	mPathfindingGrid.print();
+	printf("\n");
+}
+
+void World::updatePlayerGridPosition(){
+	Position a = { mPlayerHuman->getWorldPosition().x / 100, mPlayerHuman->getWorldPosition().y / 100 };
+	if (a.x != mPlayerGridPosition.x || a.y != mPlayerGridPosition.y){
+		printf("%i,%i\n", a.x, a.y);
+		mPlayerGridPosition = a;
+	}
 }

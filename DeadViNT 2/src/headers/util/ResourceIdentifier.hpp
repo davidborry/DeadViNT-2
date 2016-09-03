@@ -21,6 +21,7 @@ namespace Resources{
 			Explosion,
 			Particle,
 			Human,
+			Zombie,
 			Weapons,
 			Projectiles,
 			Solid,

@@ -12,6 +12,7 @@ namespace Category{
 		ParticleSystem = 1 << 7,
 		SoundEffect = 1 << 8,
 		Solid = 1 << 9,
+		Zombie = 1 << 10,
 
 		Projectile = AlliedProjectile | EnemyProjectile,
 	};

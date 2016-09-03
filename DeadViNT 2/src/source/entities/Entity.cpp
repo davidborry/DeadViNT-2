@@ -59,3 +59,42 @@ sf::Vector2f Entity::getDXY() const{
 
 	return sf::Vector2f(std::sin(angle), -std::cos(angle));
 }
+
+void Entity::adjustPositionObstacle(SceneNode* obstacle){
+	sf::Vector2f playerTL = sf::Vector2f(getBoundingRect().left, getBoundingRect().top);
+	sf::Vector2f playerDR = playerTL + sf::Vector2f(getBoundingRect().width, getBoundingRect().height);
+
+	sf::Vector2f obstacleTL = sf::Vector2f(obstacle->getBoundingRect().left, obstacle->getBoundingRect().top);
+	sf::Vector2f obstacleDR = obstacleTL + sf::Vector2f(obstacle->getBoundingRect().width, obstacle->getBoundingRect().height);
+
+	//printf("%f,%f\n", playerTL.y, obstacleDL.y);
+	float playerLeft = playerTL.x;
+	float playerRight = playerDR.x;
+	float playerTop = playerTL.y;
+	float playerBottom = playerDR.y;
+
+	float obstacleLeft = obstacleTL.x;
+	float obstacleRight = obstacleDR.x;
+	float obstacleTop = obstacleTL.y;
+	float obstacleBottom = obstacleDR.y;
+
+	sf::FloatRect inter = unionRect(getBoundingRect(), obstacle->getBoundingRect());
+	//printf("%f,%f\n", inter.width, inter.height);
+
+	if (inter.width > inter.height){
+		if (playerTop < obstacleBottom && playerTop > obstacleTop)
+			setPosition(getPosition().x, obstacleBottom + getBoundingRect().height / 2.f);
+
+		else if (playerBottom > obstacleTop && playerBottom < obstacleBottom)
+			setPosition(getPosition().x, obstacleTop - getBoundingRect().height / 2.f);
+	}
+
+	else if (inter.width < inter.height){
+		if (playerRight > obstacleLeft && playerRight < obstacleRight)
+			setPosition(obstacleLeft - getBoundingRect().width / 2.f, getPosition().y);
+
+		else if (playerLeft < obstacleRight && playerLeft > obstacleLeft)
+			setPosition(obstacleRight + getBoundingRect().width / 2.f, getPosition().y);
+	}
+
+}

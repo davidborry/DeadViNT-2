@@ -79,7 +79,7 @@ sf::FloatRect Projectile::getBoundingRect() const {
 }
 
 float Projectile::getMaxSpeed() const {
-	return Table[mType].speed;
+	return mSpeed;
 }
 
 bool Projectile::isGuided() const{
@@ -92,5 +92,5 @@ void Projectile::guideTowards(sf::Vector2f position){
 }
 
 int Projectile::getDamage() const{
-	return Table[mType].damage;
+	return mDamage;
 }

@@ -15,8 +15,9 @@
 #include "scene\SoundNode.hpp"
 #include "entities\Human.hpp"
 #include <array>
-#include "../headers/util/CollisionGrid.hpp"
-#include "../headers/entities/Projectile.hpp"
+#include "util/CollisionGrid.hpp"
+#include "entities/Projectile.hpp"
+#include "entities\Zombie.hpp"
 
 
 class World : private sf::NonCopyable{
@@ -40,13 +41,12 @@ private:
 	sf::FloatRect getViewBounds() const;
 
 	void handleCollisions();
-	void testCollisions();
-
 	void drawGrid(int width, int height);
 
+	void testCollisions();
 	void testSolids();
-
-	void adjustPlayerObstacle(SceneNode* node);
+	void testZombies();
+	void spawnZombie(float x, float y);
 
 private:
 	enum Layer{

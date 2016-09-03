@@ -15,6 +15,7 @@ public:
 	
 	sf::Vector2f getVelocity() const;
 	void accelerate(sf::Vector2f velocity);
+	void adjustPositionObstacle(SceneNode* obstacle);
 
 	void repair(int points);
 	void damage(int points);

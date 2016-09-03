@@ -19,7 +19,8 @@ mCollisionGrid(1024,720,100,100)
 	buildScene();
 
 	//testCollisions();
-	testSolids();
+	//testSolids();
+	testZombies();
 	mWorldView.setCenter(mSpawnPosition);
 
 }
@@ -33,6 +34,7 @@ void World::loadTextures(){
 	mTextures.load(Resources::Textures::Weapons, "Resources/img/Weapons.png");
 	mTextures.load(Resources::Textures::Projectiles, "Resources/img/Bullet.png");
 	mTextures.load(Resources::Textures::Solid, "Resources/img/solid/wall.png");
+	mTextures.load(Resources::Textures::Zombie, "Resources/img/Zombie.png");
 
 }
 
@@ -115,10 +117,6 @@ sf::FloatRect World::getViewBounds() const {
 	return sf::FloatRect(mWorldView.getCenter() - mWorldView.getSize() / 2.f, mWorldView.getSize());
 }
 
-
-
-
-
 void World::handleCollisions(){
 	std::set < SceneNode::Pair > collisionPairs;
 	//mSceneGraph.checkSceneCollision(mSceneGraph, collisionPairs);
@@ -136,13 +134,25 @@ void World::handleCollisions(){
 		}
 
 		else if (matchesCategories(pair, Category::PlayerHuman, Category::Solid))
-			adjustPlayerObstacle(pair.second);
-		
+			mPlayerHuman->adjustPositionObstacle(pair.second);
+
+		else if (matchesCategories(pair, Category::Projectile, Category::Zombie)){
+			auto zombie = static_cast<Zombie*>(pair.second);
+			auto projectile = static_cast<Projectile*>(pair.first);
+
+			zombie->damage(projectile->getDamage());
+			projectile->destroy();
+		}
+
+		else if (matchesCategories(pair, Category::PlayerHuman, Category::Zombie)){
+			
+			auto zombie = static_cast<Zombie*>(pair.second);
+			mPlayerHuman->adjustPositionObstacle(zombie);
+		}
 	}
 
 	mSceneGraph.clearNodes();
 	//printf("%i\n", collisionPairs.size());
-	
 }
 
 bool World::gameStatus() const{
@@ -221,41 +231,12 @@ void World::testSolids(){
 	}
 }
 
-void World::adjustPlayerObstacle(SceneNode* obstacle){
-	sf::Vector2f playerTL = sf::Vector2f(mPlayerHuman->getBoundingRect().left, mPlayerHuman->getBoundingRect().top);
-	sf::Vector2f playerDR = playerTL + sf::Vector2f(mPlayerHuman->getBoundingRect().width, mPlayerHuman->getBoundingRect().height);
+void World::testZombies(){
+	spawnZombie(500, 400);
+}
 
-	sf::Vector2f obstacleTL = sf::Vector2f(obstacle->getBoundingRect().left, obstacle->getBoundingRect().top);
-	sf::Vector2f obstacleDR = obstacleTL + sf::Vector2f(obstacle->getBoundingRect().width, obstacle->getBoundingRect().height);
-
-	//printf("%f,%f\n", playerTL.y, obstacleDL.y);
-	float playerLeft = playerTL.x;
-	float playerRight = playerDR.x;
-	float playerTop = playerTL.y;
-	float playerBottom = playerDR.y;
-
-	float obstacleLeft = obstacleTL.x;
-	float obstacleRight = obstacleDR.x;
-	float obstacleTop = obstacleTL.y;
-	float obstacleBottom = obstacleDR.y;
-
-	sf::FloatRect inter = unionRect(mPlayerHuman->getBoundingRect(), obstacle->getBoundingRect());
-	//printf("%f,%f\n", inter.width, inter.height);
-	
-	if (inter.width > inter.height){
-		if (playerTop < obstacleBottom && playerTop > obstacleTop)
-			mPlayerHuman->setPosition(mPlayerHuman->getPosition().x, obstacleBottom + mPlayerHuman->getBoundingRect().height / 2.f);
-
-		else if (playerBottom > obstacleTop && playerBottom < obstacleBottom)
-			mPlayerHuman->setPosition(mPlayerHuman->getPosition().x, obstacleTop - mPlayerHuman->getBoundingRect().height / 2.f);
-	}
-
-	else if (inter.width < inter.height){
-		if (playerRight > obstacleLeft && playerRight < obstacleRight)
-			mPlayerHuman->setPosition(obstacleLeft - mPlayerHuman->getBoundingRect().width / 2.f, mPlayerHuman->getPosition().y);
-
-		else if (playerLeft < obstacleRight && playerLeft > obstacleLeft)
-			mPlayerHuman->setPosition(obstacleRight + mPlayerHuman->getBoundingRect().width / 2.f, mPlayerHuman->getPosition().y);
-	}
-	
+void World::spawnZombie(float x, float y){
+	std::unique_ptr<Zombie> zombie(new Zombie(mTextures));
+	zombie->setPosition(x,y);
+	mSceneLayers[UpperAir]->attachChild(std::move(zombie));
 }

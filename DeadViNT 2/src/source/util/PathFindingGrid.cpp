@@ -110,10 +110,10 @@ void PathFindingGrid::addNeighbours(){
 	for (int i = 0; i < mLines; i++)
 		for (int j = 0; j < mCols; j++){
 
-			if (i-1 >= 0)
+			if (i - 1 >= 0)
 				mNodes[i][j].addNeighbour(&mNodes[i - 1][j]);
 
-			if (i+1 < mLines)
+			if (i + 1 < mLines)
 				mNodes[i][j].addNeighbour(&mNodes[i + 1][j]);
 
 			if (j - 1 >= 0)
@@ -122,17 +122,19 @@ void PathFindingGrid::addNeighbours(){
 			if (j + 1 < mCols)
 				mNodes[i][j].addNeighbour(&mNodes[i][j + 1]);
 
-			if (j+1 < mCols && i - 1 >= 0)
+			if (j + 1 < mCols && i - 1 >= 0)
 				mNodes[i][j].addNeighbour(&mNodes[i - 1][j + 1]);
 
 			if (j + 1 < mCols && i + 1 < mLines)
 				mNodes[i][j].addNeighbour(&mNodes[i + 1][j + 1]);
-			
-			if (j - 1 >= 0 && i - 1 >=0)
+
+			if (j - 1 >= 0 && i - 1 >= 0)
 				mNodes[i][j].addNeighbour(&mNodes[i - 1][j - 1]);
 
-			if (j - 1 >= 0 && i+1 < mLines)
+			if (j - 1 >= 0 && i + 1 < mLines)
 				mNodes[i][j].addNeighbour(&mNodes[i + 1][j - 1]);
+
+			
 		}
 }
 
@@ -144,7 +146,7 @@ Node* PathFindingGrid::getNode(int x, int y){
 std::unordered_map<Node*,Node*> PathFindingGrid::searchPath(PathFindingGrid::Position start, PathFindingGrid::Position end){
 
 	std::unordered_map<Node*, Node*> cameFrom;
-	std::unordered_map<Node*, double> costSoFar;
+	std::unordered_map<Node*, int> costSoFar;
 
 	PriorityQueue<Node*, double> frontier;
 	frontier.put(&mNodes[start.y][start.x],0);
@@ -160,11 +162,13 @@ std::unordered_map<Node*,Node*> PathFindingGrid::searchPath(PathFindingGrid::Pos
 			break;
 		
 		for (Node* next : current->getNeighbours()){
-			double newCost = costSoFar[current] + 1;
+			int newCost = costSoFar[current] + 1;
 
 			if (!next->isSolid() && ( !costSoFar.count(next) || newCost < costSoFar[next])){
 				costSoFar[next] = newCost;
-				double priority = newCost + heuristic(next->getX(),next->getY(), end.y,end.x);
+				int priority = newCost + std::abs(next->getX() - end.y) + std::abs(next->getY() - end.x);
+			//	printf("%i,%i | %i,%i\n", next->getX(), next->getY(), end.y, end.x);
+				//printf("%d\n", priority);
 				frontier.put(next, priority);
 				cameFrom[next] = current;
 				
@@ -220,3 +224,4 @@ void PathFindingGrid::adjustNodePosition(PathFindingGrid::Position& p){
 	while (p.y >= mCols)
 		p.y--;
 }
+ 

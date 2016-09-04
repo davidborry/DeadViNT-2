@@ -4,6 +4,8 @@
 #include "Entity.hpp"
 #include "../scene/SpriteNode.hpp"
 #include "../util/PathFindingGrid.hpp"
+#include "../../headers/util/SteeringBehaviours.hpp"
+
 class Human;
 
 

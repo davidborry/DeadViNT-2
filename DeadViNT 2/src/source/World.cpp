@@ -33,14 +33,14 @@ mTarget(outputTarget),
 mFonts(fonts),
 mSounds(sounds),
 mWorldView(outputTarget.getDefaultView()),
-mWorldBounds(0.f, 0.f, 1000, 1000),
+mWorldBounds(0.f, 0.f, 10000, 10000),
 mSpawnPosition(512.f, 360.f),
 mScrollSpeed(-50.f),
 mPlayerHuman(nullptr),
 gameOver(false),
 mCollisionCell(),
-mCollisionGrid(1000,1000,100,100),
-mPathfindingGrid(10,10)
+mCollisionGrid(10000,10000,1000,1000),
+mPathfindingGrid(100,100)
 {
 	mSceneTexture.create(outputTarget.getSize().x, outputTarget.getSize().y);
 
@@ -113,7 +113,7 @@ void World::draw(){
 		mSceneTexture.display();
 		mBloomEffect.apply(mSceneTexture, mTarget);
 
-		drawGrid(100,100);
+		//drawGrid(100,100);
 
 	}
 
@@ -144,7 +144,7 @@ void World::update(sf::Time dt){
 	updatePlayerGridPosition();
 	//printf("%i\n", mActiveEnemies.size());
 
-//	mWorldView.setCenter(mPlayerHuman->getWorldPosition());
+	mWorldView.setCenter(mPlayerHuman->getWorldPosition());
 }
 
 CommandQueue& World::getCommandQueue(){
@@ -273,21 +273,12 @@ void World::testSolids(){
 void World::testZombies(){
 	
 	for (int i = 0; i < 10; i++)
-		spawnZombie(i, 6);
+		spawnZombie(i, 20);
 	
 	for (int i = 0; i < 10; i++)
-		spawnZombie(i, 7);
+		spawnZombie(i, 90);
 
-	for (int i = 0; i < 10; i++)
-		spawnZombie(i, 8);
-
-	for (int i = 0; i < 10; i++)
-		spawnZombie(i, 9);
-
-	for (int i = 0; i < 10; i++)
-		spawnZombie(i, 4);
-
-
+	
 	//spawnZombie(3, 1);
 
 }
@@ -320,11 +311,10 @@ void World::addObstacle(int x, int y){
 }
 
 void World::printGrid(){
-	mPathfindingGrid.print();
+	//mPathfindingGrid.print();
 
-	mPathfindingGrid.getNode(2, 0)->isSolid();
 
-	std::vector<sf::Vector2f> path = mPathfindingGrid.findPath({ 3,1 }, mPlayerGridPosition);
+	std::vector<sf::Vector2f> path = mPathfindingGrid.findPath({ 99,99 }, mPlayerGridPosition);
 	printf("PATH : %i\n", path.size());
 	printf("\n");
 
@@ -362,13 +352,16 @@ void World::updateEnemiesPath(){
 		int x = zombie->getWorldPosition().x / 100;
 		int y = zombie->getWorldPosition().y / 100;
 
-		if (!startPoints.count({ x, y })){
-			startPoints[{x, y}] = mPathfindingGrid.findPath({ x, y }, mPlayerGridPosition);
-		}
-
-		zombie->setPath(startPoints[{x, y}]);
 		
-		printf("%i\n", startPoints.size());
+			
+			if (!startPoints.count({ x, y })){
+				startPoints[{x, y}] = mPathfindingGrid.findPath({ x, y }, mPlayerGridPosition);
+			}
+
+			zombie->setPath(startPoints[{x, y}]);
+
+		
+		//printf("%i\n", startPoints.size());
 	//	std::vector<sf::Vector2f> path = mPathfindingGrid.findPath({ x, y }, mPlayerGridPosition);
 	//	zombie->setPath(path);
 	}

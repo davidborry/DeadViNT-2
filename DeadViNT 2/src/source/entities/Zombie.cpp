@@ -1,6 +1,5 @@
 #include "../../headers/entities/Zombie.hpp"
 #include "../../headers/entities/Human.hpp"
-#include "../../headers/util/SteeringBehaviours.hpp"
 #include "../../headers/util/Utility.hpp"
 
 Zombie::Zombie(const TextureHolder& textures) :
@@ -17,6 +16,8 @@ mCurrentPathNode(1)
 
 void Zombie::updateCurrent(sf::Time dt, CommandQueue& commands){
 
+
+	
 	if (closeToTarget())
 		seekTarget();
 	else
@@ -25,7 +26,7 @@ void Zombie::updateCurrent(sf::Time dt, CommandQueue& commands){
 	//printf("%f, %f\n", angle, getRotation());
 
 
-	setRotation(angle);
+//	setRotation(angle);
 
 Entity::updateCurrent(dt,commands);
 }

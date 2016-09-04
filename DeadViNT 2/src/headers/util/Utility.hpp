@@ -35,4 +35,6 @@ int randomInt(int exclusiveMax);
 
 sf::FloatRect unionRect(sf::FloatRect rect1, sf::FloatRect rect2);
 
+double heuristic(int x1, int y1, int x2, int y2);
+
 #endif

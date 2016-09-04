@@ -45,8 +45,10 @@ public:
 
 	PathFindingGrid(int lines, int cols);
 
-	std::vector<Position> getPath(Position start, Position end);
+	std::vector<Position> findPath(Position start, Position end);
 
+	std::unordered_map<Node*,Node*> searchPath(Position start, Position end);
+	std::vector<Position> getPath(Position start, Position end, std::unordered_map<Node*, Node*>& cameFrom);
 	void addNeighbours();
 	bool isSolid(int x, int y) const;
 	void setSolid(int x, int y, bool solid);
@@ -64,7 +66,7 @@ private:
 template<typename T, typename priority_t>
 struct PriorityQueue {
 	typedef std::pair<priority_t, T> PQElement;
-	std::priority_queue<PQElement, std::vector<PQElement>, std::greater<PQElement>> a;
+	std::priority_queue<PQElement, std::vector<PQElement>, std::greater<PQElement>> elements;
 
 	inline bool empty() const { return elements.empty(); }
 

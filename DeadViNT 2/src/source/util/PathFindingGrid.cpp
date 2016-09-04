@@ -1,4 +1,5 @@
 #include "../../headers/util/PathFindingGrid.hpp"
+#include "../../headers/util/Utility.hpp"
 
 namespace std
 {
@@ -143,48 +144,65 @@ Node* PathFindingGrid::getNode(int x, int y){
 	return &mNodes[x][y];
 }
 
-std::vector<PathFindingGrid::Position> PathFindingGrid::getPath(PathFindingGrid::Position start, PathFindingGrid::Position end){
-	std::vector<PathFindingGrid::Position> path;
-	std::unordered_map<Node*, Node*> cameFrom;
 
-	std::queue<Node*> frontier;
-	frontier.push(&mNodes[start.y][start.x]);
+std::unordered_map<Node*,Node*> PathFindingGrid::searchPath(PathFindingGrid::Position start, PathFindingGrid::Position end){
+	std::unordered_map<Node*, Node*> cameFrom;
+	std::unordered_map<Node*, double> costSoFar;
+
+	PriorityQueue<Node*, double> frontier;
+	frontier.put(&mNodes[start.y][start.x],0);
 
 	Node* startNode = &mNodes[start.y][start.x];
 	cameFrom[startNode] = startNode;
+	costSoFar[startNode] = 0;
 
 	while (!frontier.empty()){
-		Node* current = frontier.front();
-		frontier.pop();
-
+		Node* current = frontier.get();
 
 		if (current->getX() == end.y && current->getY() == end.x)
 			break;
 		
 		for (Node* next : current->getNeighbours()){
-			if (!cameFrom.count(next) && !next->isSolid()){
-				frontier.push(next);
+			double newCost = costSoFar[current] + 1;
+
+			if (!next->isSolid() && ( !costSoFar.count(next) || newCost < costSoFar[next])){
+				costSoFar[next] = newCost;
+				double priority = newCost + heuristic(next->getX(),next->getY(), end.y,end.x);
+				frontier.put(next, priority);
 				cameFrom[next] = current;
+				
 			}
 		}
 	}
 
+	return cameFrom;
+}
+
+
+/**
+Return found path in world coordinates
+*/
+std::vector<PathFindingGrid::Position> PathFindingGrid::getPath(Position start, Position end, std::unordered_map<Node*, Node*>& cameFrom){
+	std::vector<PathFindingGrid::Position> path;
 
 	Node* current = &mNodes[end.y][end.x];
+	Node* startNode = &mNodes[start.y][start.x];
 
-	if (current != NULL)
-	path.push_back({ current->getY(), current->getX() });
+	
+		path.push_back({ current->getY()*100 + 50, current->getX()*100 +50});
 	while (current != startNode) {
 		current = cameFrom[current];
 		if (current == NULL)
 			break;
-		path.push_back({ current->getY(), current->getX() });
+		path.push_back({ current->getY()*100 + 50, current->getX()*100 + 50 });
 	}
 
-	path.push_back(start); // optional
+	//path.push_back({start.x*100,start.y*100}); // optional
 	std::reverse(path.begin(), path.end());
 	return path;
-	
-	
-	
+}
+
+std::vector<PathFindingGrid::Position> PathFindingGrid::findPath(Position start, Position end){
+	std::unordered_map<Node*, Node*> map = searchPath(start, end);
+	return getPath(start, end, map);
 }

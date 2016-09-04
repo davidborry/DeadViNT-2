@@ -112,7 +112,7 @@ void World::update(sf::Time dt){
 	handleCollisions();
 
 	updatePlayerGridPosition();
-	//mWorldView.setCenter(mPlayerHuman->getWorldPosition());
+	mWorldView.setCenter(mPlayerHuman->getWorldPosition());
 }
 
 CommandQueue& World::getCommandQueue(){
@@ -268,7 +268,7 @@ void World::printGrid(){
 
 	mPathfindingGrid.getNode(2, 0)->isSolid();
 
-	std::vector<PathFindingGrid::Position> path = mPathfindingGrid.getPath({ 0, 0 }, { 5, 5 });
+	std::vector<PathFindingGrid::Position> path = mPathfindingGrid.findPath({ 0,0 }, { 9, 9 });
 	printf("PATH : %i\n", path.size());
 	printf("\n");
 
@@ -277,7 +277,7 @@ void World::printGrid(){
 
 	for (int i = 0; i < path.size(); i++){
 		std::unique_ptr<SpriteNode> sprite(new SpriteNode(texture, textureRect));
-		sprite->setPosition(100 * path[i].x, 100 * path[i].y);
+		sprite->setPosition(path[i].x, path[i].y);
 		sprite->setSolid(false);
 		mSceneLayers[UpperAir]->attachChild(std::move(sprite));
 	}

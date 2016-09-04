@@ -60,3 +60,7 @@ sf::FloatRect unionRect(sf::FloatRect rect1, sf::FloatRect rect2){
 	float height = bottom - top;
 	return sf::FloatRect(left, top,width,height);
 }
+
+double heuristic(int x1, int x2, int y1, int y2){
+	return std::abs(x1 - x2) + std::abs(y1 - y2);
+}

@@ -52,9 +52,11 @@ private:
 	void testCollisions();
 	void testSolids();
 	void testZombies();
-	void spawnZombie(float x, float y);
+	void spawnZombie(int x, int y);
 
 	void updatePlayerGridPosition();
+	void updateActiveEnemies();
+	void updateEnemiesPath();
 
 private:
 	enum Layer{
@@ -89,6 +91,8 @@ private:
 
 	PathFindingGrid mPathfindingGrid;
 	PathFindingGrid::Position mPlayerGridPosition;
+
+	std::vector<Zombie*> mActiveEnemies;
 };
 
 

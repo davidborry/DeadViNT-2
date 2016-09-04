@@ -98,3 +98,4 @@ void Entity::adjustPositionObstacle(SceneNode* obstacle){
 	}
 
 }
+

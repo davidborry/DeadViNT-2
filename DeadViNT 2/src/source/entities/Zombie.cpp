@@ -6,7 +6,8 @@
 Zombie::Zombie(const TextureHolder& textures) :
 Entity(20),
 mSprite(textures.get(Resources::Textures::Zombie)),
-mTarget(nullptr)
+mTarget(nullptr),
+mCurrentPathNode(1)
 {
 	rotate(90);
 	centerOrigin(mSprite);
@@ -15,9 +16,14 @@ mTarget(nullptr)
 }
 
 void Zombie::updateCurrent(sf::Time dt, CommandQueue& commands){
-	seekTarget();
+
+	if (closeToTarget())
+		seekTarget();
+	else
+		followPath();
 	float angle = toDegree( std::atan2(getVelocity().x , -getVelocity().y));
 	//printf("%f, %f\n", angle, getRotation());
+
 
 	setRotation(angle);
 
@@ -46,5 +52,64 @@ Human* Zombie::getTarget(){
 }
 
 void Zombie::seekTarget(){
-	mVelocity += seek(*this,*mTarget,50);
+	
+	seekPosition(mTarget->getWorldPosition());
+}
+
+void Zombie::seekPosition(sf::Vector2f position){
+	mVelocity += seek(*this, position, 50);
+}
+
+bool Zombie::closeToTarget() {
+
+	int x = getWorldPosition().x / 100;
+	int y = getWorldPosition().y / 100;
+
+	int targetX = mTarget->getWorldPosition().x / 100;
+	int targetY = mTarget->getWorldPosition().y / 100;
+
+	//printf("%i,%i - %i,%i\n", x, y, targetX, targetY);
+	if (x == targetX && y == targetY){
+		return true;
+	}
+
+	
+
+	return false;
+}
+
+void Zombie::setPath(Path path){
+	mPath = path;
+	mCurrentPathNode = 1;
+}
+
+Path Zombie::getPath() const{
+	return mPath;
+}
+
+void Zombie::followPath(){
+	//printf("%i / %i\n", mCurrentPathNode, mPath.size());
+
+	if (mPath.size() > 1){
+	//	printf("%i\n", mPath.size());
+		sf::Vector2f target = mPath[mCurrentPathNode];
+		if (distance2(getWorldPosition(), target) <=10){
+			if (mCurrentPathNode == mPath.size() - 1)
+				return;
+
+			mCurrentPathNode++;
+
+			if (mCurrentPathNode >= mPath.size())
+				mCurrentPathNode = mPath.size() - 1;
+		}
+
+		seekPosition(mPath[mCurrentPathNode]);
+	}
+
+	
+	
+}
+
+void Zombie::updateSteering(){
+	mVelocity = unitVector(mSteering)* 50.f;
 }

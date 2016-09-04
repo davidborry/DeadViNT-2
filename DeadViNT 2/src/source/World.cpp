@@ -1,5 +1,33 @@
 #include "../headers/World.h"
 
+namespace std
+{
+	//namespace tr1
+	//{
+	// Specializations for unordered containers
+
+	template <>
+	struct hash<PathFindingGrid::Position> : public unary_function<PathFindingGrid::Position, size_t>
+	{
+		size_t operator()(const PathFindingGrid::Position& value) const
+		{
+			return 0;
+		}
+	};
+
+	//} // namespace tr1
+
+	template <>
+	struct equal_to<PathFindingGrid::Position> : public unary_function<PathFindingGrid::Position, bool>
+	{
+		bool operator()(const PathFindingGrid::Position& x, const PathFindingGrid::Position& y) const
+		{
+			return x.x==y.x && x.y == y.y;
+		}
+	};
+
+}
+
 World::World(sf::RenderTarget& outputTarget, FontHolder& fonts, SoundPlayer& sounds) : 
 mTarget(outputTarget),
 mFonts(fonts),
@@ -19,13 +47,15 @@ mPathfindingGrid(10,10)
 	loadTextures();
 	buildScene();
 
-	//testCollisions();
-	testSolids();
-	//testZombies();
-	mWorldView.setCenter(mSpawnPosition);
-
 	mPlayerGridPosition.x = mPlayerHuman->getWorldPosition().x / 100;
 	mPlayerGridPosition.y = mPlayerHuman->getWorldPosition().y / 100;
+
+	//testCollisions();
+	testSolids();
+	testZombies();
+	mWorldView.setCenter(mSpawnPosition);
+
+	
 }
 
 void World::loadTextures(){
@@ -100,7 +130,7 @@ void World::update(sf::Time dt){
 	while (!mCommandQueue.isEmpty())
 		mSceneGraph.onCommand(mCommandQueue.pop(), dt);
 
-	
+	updateActiveEnemies();
 	mSceneGraph.removeWrecks();
 	//mSceneGraph.clearNodes();
 
@@ -112,7 +142,9 @@ void World::update(sf::Time dt){
 	handleCollisions();
 
 	updatePlayerGridPosition();
-	mWorldView.setCenter(mPlayerHuman->getWorldPosition());
+	//printf("%i\n", mActiveEnemies.size());
+
+//	mWorldView.setCenter(mPlayerHuman->getWorldPosition());
 }
 
 CommandQueue& World::getCommandQueue(){
@@ -239,15 +271,39 @@ void World::testSolids(){
 }
 
 void World::testZombies(){
-	spawnZombie(500, 650);
-	spawnZombie(300, 200);
+	
+	for (int i = 0; i < 10; i++)
+		spawnZombie(i, 6);
+	
+	for (int i = 0; i < 10; i++)
+		spawnZombie(i, 7);
+
+	for (int i = 0; i < 10; i++)
+		spawnZombie(i, 8);
+
+	for (int i = 0; i < 10; i++)
+		spawnZombie(i, 9);
+
+	for (int i = 0; i < 10; i++)
+		spawnZombie(i, 4);
+
+
+	//spawnZombie(3, 1);
+
 }
 
-void World::spawnZombie(float x, float y){
+void World::spawnZombie(int x, int y){
 	std::unique_ptr<Zombie> zombie(new Zombie(mTextures));
-	zombie->setPosition(x,y);
+	zombie->setPosition(100*x+50,100*y+50);
+	
+
+	std::vector<sf::Vector2f> path = mPathfindingGrid.findPath({ x,y }, mPlayerGridPosition);
 	zombie->setTarget(mPlayerHuman);
+	zombie->setPath(path);
+
+	mActiveEnemies.push_back(zombie.get());
 	mSceneLayers[UpperAir]->attachChild(std::move(zombie));
+
 }
 
 void World::addObstacle(int x, int y){
@@ -268,7 +324,7 @@ void World::printGrid(){
 
 	mPathfindingGrid.getNode(2, 0)->isSolid();
 
-	std::vector<PathFindingGrid::Position> path = mPathfindingGrid.findPath({ 0,0 }, { 9, 9 });
+	std::vector<sf::Vector2f> path = mPathfindingGrid.findPath({ 3,1 }, mPlayerGridPosition);
 	printf("PATH : %i\n", path.size());
 	printf("\n");
 
@@ -288,5 +344,32 @@ void World::updatePlayerGridPosition(){
 	if (a.x != mPlayerGridPosition.x || a.y != mPlayerGridPosition.y){
 		printf("%i,%i\n", a.x, a.y);
 		mPlayerGridPosition = a;
+		updateEnemiesPath();
+	}
+}
+
+void World::updateActiveEnemies(){
+	auto wreckfieldBegin1 = std::remove_if(mActiveEnemies.begin(), mActiveEnemies.end(),
+	std::mem_fn(&SceneNode::isMarkedForRemoval));
+
+	mActiveEnemies.erase(wreckfieldBegin1, mActiveEnemies.end());
+
+}
+
+void World::updateEnemiesPath(){
+	std::unordered_map<PathFindingGrid::Position,Path> startPoints;
+	FOREACH(auto zombie, mActiveEnemies){
+		int x = zombie->getWorldPosition().x / 100;
+		int y = zombie->getWorldPosition().y / 100;
+
+		if (!startPoints.count({ x, y })){
+			startPoints[{x, y}] = mPathfindingGrid.findPath({ x, y }, mPlayerGridPosition);
+		}
+
+		zombie->setPath(startPoints[{x, y}]);
+		
+		printf("%i\n", startPoints.size());
+	//	std::vector<sf::Vector2f> path = mPathfindingGrid.findPath({ x, y }, mPlayerGridPosition);
+	//	zombie->setPath(path);
 	}
 }

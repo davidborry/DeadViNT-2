@@ -5,6 +5,8 @@
 #include <queue>
 #include <unordered_map>
 #include <functional>
+#include "SFML\System\Vector2.hpp"
+
 
 
 class Node{
@@ -45,16 +47,18 @@ public:
 
 	PathFindingGrid(int lines, int cols);
 
-	std::vector<Position> findPath(Position start, Position end);
+	std::vector<sf::Vector2f> findPath(Position start, Position end);
 
 	std::unordered_map<Node*,Node*> searchPath(Position start, Position end);
-	std::vector<Position> getPath(Position start, Position end, std::unordered_map<Node*, Node*>& cameFrom);
+	std::vector<sf::Vector2f> getPath(Position start, Position end, std::unordered_map<Node*, Node*>& cameFrom);
 	void addNeighbours();
 	bool isSolid(int x, int y) const;
 	void setSolid(int x, int y, bool solid);
 	void print();
 
 	Node* getNode(int x, int y);
+
+	void adjustNodePosition(Position& p);
 
 private:
 	int mLines;
@@ -80,5 +84,8 @@ struct PriorityQueue {
 		return best_item;
 	}
 };
+
+
+typedef std::vector<sf::Vector2f> Path;
 
 #endif

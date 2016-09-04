@@ -50,7 +50,7 @@ void Node::setSolid(bool solid){
 }
 
 void Node::addNeighbour(Node* neighbour){
-	printf("%i", neighbour->isSolid());
+	//printf("%i", neighbour->isSolid());
 	mNeighbours.push_back(neighbour);
 }
 
@@ -93,7 +93,7 @@ mCols(cols)
 }
 
 void PathFindingGrid::setSolid(int x, int y, bool solid){
-	printf("%i,%i\n", mLines, mCols);
+	//printf("%i,%i\n", mLines, mCols);
 	mNodes[y][x].setSolid(solid);
 }
 
@@ -116,27 +116,23 @@ void PathFindingGrid::addNeighbours(){
 			if (i+1 < mLines)
 				mNodes[i][j].addNeighbour(&mNodes[i + 1][j]);
 
-
-			if (j - 1 >= 0){
+			if (j - 1 >= 0)
 				mNodes[i][j].addNeighbour(&mNodes[i][j - 1]);
 
-				if (i - 1 >=0)
-					mNodes[i][j].addNeighbour(&mNodes[i - 1][j - 1]);
-
-				if (i+1 < mLines)
-					mNodes[i][j].addNeighbour(&mNodes[i + 1][j - 1]);
-			}
-			
-			if (j + 1 < mCols){
+			if (j + 1 < mCols)
 				mNodes[i][j].addNeighbour(&mNodes[i][j + 1]);
 
-				if (i - 1 >= 0)
-					mNodes[i][j].addNeighbour(&mNodes[i - 1][j + 1]);
+			if (j+1 < mCols && i - 1 >= 0)
+				mNodes[i][j].addNeighbour(&mNodes[i - 1][j + 1]);
 
-				if (i + 1 < mLines)
-					mNodes[i][j].addNeighbour(&mNodes[i + 1][j + 1]);
-			}
+			if (j + 1 < mCols && i + 1 < mLines)
+				mNodes[i][j].addNeighbour(&mNodes[i + 1][j + 1]);
 			
+			if (j - 1 >= 0 && i - 1 >=0)
+				mNodes[i][j].addNeighbour(&mNodes[i - 1][j - 1]);
+
+			if (j - 1 >= 0 && i+1 < mLines)
+				mNodes[i][j].addNeighbour(&mNodes[i + 1][j - 1]);
 		}
 }
 
@@ -146,6 +142,7 @@ Node* PathFindingGrid::getNode(int x, int y){
 
 
 std::unordered_map<Node*,Node*> PathFindingGrid::searchPath(PathFindingGrid::Position start, PathFindingGrid::Position end){
+
 	std::unordered_map<Node*, Node*> cameFrom;
 	std::unordered_map<Node*, double> costSoFar;
 
@@ -182,19 +179,19 @@ std::unordered_map<Node*,Node*> PathFindingGrid::searchPath(PathFindingGrid::Pos
 /**
 Return found path in world coordinates
 */
-std::vector<PathFindingGrid::Position> PathFindingGrid::getPath(Position start, Position end, std::unordered_map<Node*, Node*>& cameFrom){
-	std::vector<PathFindingGrid::Position> path;
+std::vector<sf::Vector2f> PathFindingGrid::getPath(Position start, Position end, std::unordered_map<Node*, Node*>& cameFrom){
+	std::vector<sf::Vector2f> path;
 
 	Node* current = &mNodes[end.y][end.x];
 	Node* startNode = &mNodes[start.y][start.x];
 
 	
-		path.push_back({ current->getY()*100 + 50, current->getX()*100 +50});
+		path.push_back(sf::Vector2f(current->getY()*100 + 50, current->getX()*100 +50));
 	while (current != startNode) {
 		current = cameFrom[current];
 		if (current == NULL)
 			break;
-		path.push_back({ current->getY()*100 + 50, current->getX()*100 + 50 });
+		path.push_back(sf::Vector2f(current->getY()*100 + 50, current->getX()*100 + 50 ));
 	}
 
 	//path.push_back({start.x*100,start.y*100}); // optional
@@ -202,7 +199,24 @@ std::vector<PathFindingGrid::Position> PathFindingGrid::getPath(Position start, 
 	return path;
 }
 
-std::vector<PathFindingGrid::Position> PathFindingGrid::findPath(Position start, Position end){
+std::vector<sf::Vector2f> PathFindingGrid::findPath(Position start, Position end){
+	adjustNodePosition(end);
+	adjustNodePosition(start);
+
 	std::unordered_map<Node*, Node*> map = searchPath(start, end);
 	return getPath(start, end, map);
+}
+
+void PathFindingGrid::adjustNodePosition(PathFindingGrid::Position& p){
+	while (p.x < 0)
+		p.x++;
+
+	while (p.y < 0)
+		p.y++;
+
+	while (p.x >= mLines)
+		p.x--;
+
+	while (p.y >= mCols)
+		p.y--;
 }

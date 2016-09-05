@@ -19,9 +19,9 @@ public:
 	virtual unsigned int getCategory() const;
 	virtual sf::FloatRect getBoundingRect() const;
 
-	void seekPosition(sf::Vector2f location);
-	void seekTarget();
-	void followPath();
+	void seekPosition(sf::Vector2f location, sf::Time dt);
+	void seekTarget(sf::Time dt);
+	void followPath(sf::Time dt);
 
 	bool closeToTarget();
 	void setPath(Path path);

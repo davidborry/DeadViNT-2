@@ -251,9 +251,14 @@ void World::drawGrid(int width, int height){
 void World::testSolids(){
 	addObstacle(6, 7);
 
-	for (int i = 0; i < 8; i++)
+	for (int i = 0; i < 100; i++)
 		if (i!=5)
 		addObstacle(i, 2);
+
+	for (int i = 0; i < 100; i++)
+		if (i != 48 && i != 47)
+			addObstacle(i, 50);
+
 	/*for (int i = 1; i < 9; i++)
 		if (i != 5 && i != 4){
 		std::unique_ptr<SpriteNode> sprite(new SpriteNode(texture, textureRect));
@@ -273,10 +278,9 @@ void World::testSolids(){
 void World::testZombies(){
 	
 	for (int i = 0; i < 10; i++)
-		spawnZombie(i, 20);
+		spawnZombie(i, 5);
 	
-	for (int i = 0; i < 10; i++)
-		spawnZombie(i, 90);
+	
 
 	
 	//spawnZombie(3, 1);
@@ -352,14 +356,15 @@ void World::updateEnemiesPath(){
 		int x = zombie->getWorldPosition().x / 100;
 		int y = zombie->getWorldPosition().y / 100;
 
-		
-			
+		if (distance(*zombie, *mPlayerHuman) < 1000){
+			printf("CLOSE\n");
 			if (!startPoints.count({ x, y })){
 				startPoints[{x, y}] = mPathfindingGrid.findPath({ x, y }, mPlayerGridPosition);
 			}
 
 			zombie->setPath(startPoints[{x, y}]);
 
+		}
 		
 		//printf("%i\n", startPoints.size());
 	//	std::vector<sf::Vector2f> path = mPathfindingGrid.findPath({ x, y }, mPlayerGridPosition);

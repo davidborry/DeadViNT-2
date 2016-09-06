@@ -25,6 +25,7 @@ namespace Resources{
 			Weapons,
 			Projectiles,
 			Solid,
+			Fence,
 		};
 
 	}

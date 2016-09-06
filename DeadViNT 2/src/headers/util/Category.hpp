@@ -13,8 +13,11 @@ namespace Category{
 		SoundEffect = 1 << 8,
 		Solid = 1 << 9,
 		Zombie = 1 << 10,
+		Spawner = 1 << 11,
+		Fence = 1 << 12,
 
 		Projectile = AlliedProjectile | EnemyProjectile,
+		Obstacle = Solid | Fence
 	};
 }
 

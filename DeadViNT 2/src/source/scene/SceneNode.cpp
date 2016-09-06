@@ -35,7 +35,7 @@ SceneNode::Ptr SceneNode::detachChild(const SceneNode& node){
 
 void SceneNode::draw(sf::RenderTarget& target, sf::RenderStates states) const{
 
-	drawBoundingRect(target,states);
+	//drawBoundingRect(target,states);
 	states.transform *= getTransform();
 	drawCurrent(target, states);
 	drawChildren(target, states);

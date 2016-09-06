@@ -19,6 +19,7 @@
 #include "entities/Projectile.hpp"
 #include "entities\Zombie.hpp"
 #include "util\PathFindingGrid.hpp"
+#include "entities\Fence.hpp"
 
 
 
@@ -37,6 +38,7 @@ public:
 	bool gameStatus() const;
 
 	void addObstacle(int x, int y);
+	void addFence(int x, int y);
 
 	void printGrid();
 

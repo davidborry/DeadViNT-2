@@ -34,7 +34,7 @@ mFonts(fonts),
 mSounds(sounds),
 mWorldView(outputTarget.getDefaultView()),
 mWorldBounds(0.f, 0.f, 10000, 10000),
-mSpawnPosition(512.f, 360.f),
+mSpawnPosition(3100.f, 700.f),
 mScrollSpeed(-50.f),
 mPlayerHuman(nullptr),
 gameOver(false),
@@ -68,6 +68,7 @@ void World::loadTextures(){
 	mTextures.load(Resources::Textures::Projectiles, "Resources/img/Bullet.png");
 	mTextures.load(Resources::Textures::Solid, "Resources/img/solid/wall.png");
 	mTextures.load(Resources::Textures::Zombie, "Resources/img/Zombie.png");
+	mTextures.load(Resources::Textures::Fence, "Resources/img/Fence.png");
 
 }
 
@@ -171,7 +172,7 @@ void World::handleCollisions(){
 			projectile->destroy();
 		}
 
-		else if (matchesCategories(pair, Category::PlayerHuman, Category::Solid))
+		else if (matchesCategories(pair, Category::PlayerHuman, Category::Obstacle))
 			mPlayerHuman->adjustPositionObstacle(pair.second);
 
 		else if (matchesCategories(pair, Category::Zombie, Category::Solid)){
@@ -249,15 +250,24 @@ void World::drawGrid(int width, int height){
 }
 
 void World::testSolids(){
-	addObstacle(6, 7);
+	//addObstacle(6, 7);
 
-	for (int i = 0; i < 100; i++)
-		if (i!=5)
-		addObstacle(i, 2);
+	for (int i = 0; i < 5; i++){
+			addObstacle(i+30, 5);
 
-	for (int i = 0; i < 100; i++)
-		if (i != 48 && i != 47)
-			addObstacle(i, 50);
+			if (i!=1)
+			addObstacle(i+30, 15);
+	}
+
+	for (int i = 0; i <= 10; i++){
+		addObstacle(30, i+5);
+		if (i != 2)
+			addObstacle(35, i+5);
+	}
+
+	addFence(31, 15);
+	addFence(35, 7);
+	
 
 	/*for (int i = 1; i < 9; i++)
 		if (i != 5 && i != 4){
@@ -277,9 +287,8 @@ void World::testSolids(){
 
 void World::testZombies(){
 	
-	for (int i = 0; i < 10; i++)
-		spawnZombie(i, 5);
-	
+	spawnZombie(31, 15);
+	spawnZombie(38, 7);
 	
 
 	
@@ -312,6 +321,15 @@ void World::addObstacle(int x, int y){
 
 		mPathfindingGrid.setSolid(x, y, true);
 	
+}
+
+void World::addFence(int x, int y){
+	sf::Texture& texture = mTextures.get(Resources::Textures::Fence);
+	texture.setRepeated(true);
+
+	std::unique_ptr<Fence> fence(new Fence(texture));
+	fence->setPosition(100 * x, 100 * y);
+	mSceneLayers[UpperAir]->attachChild(std::move(fence));
 }
 
 void World::printGrid(){
@@ -356,15 +374,15 @@ void World::updateEnemiesPath(){
 		int x = zombie->getWorldPosition().x / 100;
 		int y = zombie->getWorldPosition().y / 100;
 
-		if (distance(*zombie, *mPlayerHuman) < 1000){
-			printf("CLOSE\n");
+	
+			//printf("CLOSE\n");
 			if (!startPoints.count({ x, y })){
 				startPoints[{x, y}] = mPathfindingGrid.findPath({ x, y }, mPlayerGridPosition);
 			}
 
 			zombie->setPath(startPoints[{x, y}]);
 
-		}
+		
 		
 		//printf("%i\n", startPoints.size());
 	//	std::vector<sf::Vector2f> path = mPathfindingGrid.findPath({ x, y }, mPlayerGridPosition);
